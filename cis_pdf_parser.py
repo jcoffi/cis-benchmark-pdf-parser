@@ -48,7 +48,7 @@ if __name__ == "__main__":
     # Skip to actual rules
     for currentPage in range(len(doc)):
         findPage = doc.loadPage(currentPage)
-        if findPage.searchFor("Recommendations 1 Initial Setup"):
+        if findPage.searchFor("Recommendations 1"):
             firstPage = currentPage
 
     # If no "Recommendations" and "Initial Setup" it is not a full CIS Benchmark .pdf file
@@ -83,7 +83,7 @@ if __name__ == "__main__":
 
                 # Get rule by matching regex pattern for x.x.* (Automated) or (Manual), there are no "x.*" we care about
                 try:
-                    pattern = "(\d+(?:\.\d.\d+)?)(.*?)(\(Automated\)|\(Manual\))"
+                    pattern = r"(\d+(?:\.\d.\d+)?)(.*?)(\(Automated\)|\(Manual\)|\(Scored\)|\(Not Scored\))"
                     rerule = re.search(pattern, data, re.DOTALL)
                     if rerule is not None:
                         rule = rerule.group(2).split("P a g e", 1)[1].strip()
@@ -95,14 +95,16 @@ if __name__ == "__main__":
 
                 # Get Profile Applicability by splits as it is always between Profile App. and Description, faster than regex
                 try:
+                    data = re.sub("[^a-zA-Z0-9\.\:\\n-]+", " ", data)
                     l_post = data.split("Profile Applicability:", 1)[1]
                     level = l_post.partition("Description:")[0].strip()
                     level = re.sub("[^a-zA-Z0-9\\n-]+", " ", level)
+
                     level_count += 1
                 except IndexError:
                     logger.info("*** Page does not contain Profile Levels ***")
 
-                # Get Description by splits as it is always between Desccription and Rationale, faster than regex
+                # Get Description by splits as it is always between Description and Rationale, faster than regex
                 try:
                     d_post = data.split("Description:", 1)[1]
                     description = d_post.partition("Rationale")[0].strip()
